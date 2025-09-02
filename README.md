@@ -1,5 +1,19 @@
 # HotelBooker
 
+A hotel booking API that provides the following actions:
+- Find a hotel based on it's name.
+- Find available rooms between two dates for a given number of people.
+- Book a room.
+- Find booking details based on a booking reference.
+- Allows clearing data in the database
+- Allows seeding data into the database
+
+Extras:
+- Allows an over view of guests (for building save model for booking)
+- Allows an over view of rooms (for building save model for booking)
+
+
+## End-Points Summary
 ### Booking Endpoints:
 
 GET /api/Booking/:reference
