@@ -51,7 +51,6 @@ namespace HotelBooker.Services.Service
                 Room = room
             };
 
-            await _context.AddAsync(newBooking);
 
             int retries = 0;
             int maxRetries = 10;
@@ -68,7 +67,10 @@ namespace HotelBooker.Services.Service
                     y.CheckIn <= saveModel.CheckOut && 
                     y.CheckOut >= saveModel.CheckIn))
                     {
+                        await _context.AddAsync(newBooking);
+
                         await _context.SaveChangesAsync();
+
                         saved = true;
                     }
                     else
