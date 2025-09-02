@@ -1,4 +1,3 @@
-using HotelBooker.API.DataInitialiser;
 using HotelBooker.Data;
 using HotelBooker.Services.Interface;
 using HotelBooker.Services.Service;
@@ -25,7 +24,10 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-HotelBookerDataInitialiser.Initialise(app.Services);
+app.UseExceptionHandler(exceptionHandlerApp
+    => exceptionHandlerApp.Run(async context
+        => await Results.Problem()
+                     .ExecuteAsync(context)));
 
 var contextFactory = app.Services.GetRequiredService<IDbContextFactory<DataContext>>();
 using var context = contextFactory.CreateDbContext();

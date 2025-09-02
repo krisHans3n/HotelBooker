@@ -12,27 +12,20 @@ namespace HotelBooker.Services.Service
         {
             _context = context;
         }
-        public async Task<IEnumerable<GuestModel>> GetAll()
+        public async Task<List<GuestModel>> GetAll()
         {
-            var guests = await _context.Guests.ToListAsync();
-
-            var result = new List<GuestModel>();
-
-            foreach (var guest in guests)
+            var guests = await _context.Guests.Select(g => new GuestModel
             {
-                result.Add(new GuestModel()
-                {
-                    Id = guest.Id,
-                    FirstName = guest.FirstName,
-                    LastName = guest.LastName,
-                    PhoneNumber = guest.PhoneNumber,
-                    Address = guest.Address,
-                    Email = guest.Email,
-                    DateOfBirth = guest.DateOfBirth,
-                });
-            }
+                Id = g.Id,
+                FirstName = g.FirstName,
+                LastName = g.LastName,
+                PhoneNumber = g.PhoneNumber,
+                Address = g.Address,
+                Email = g.Email,
+                DateOfBirth = g.DateOfBirth
+            }).ToListAsync();
 
-            return result;
+            return guests;
         }
     }
 }

@@ -16,17 +16,12 @@ namespace HotelBooker.API.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<GuestModel>), 200)]
-        public async Task<IActionResult> GetAll()
+        [ProducesResponseType(typeof(IEnumerable<GuestModel>), StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetAll()
         {
-            var rooms = await _service.GetAll();
+            var guests = await _service.GetAll();
 
-            if (rooms == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(rooms);
+            return Ok(guests ?? []);
         }
     }
 }

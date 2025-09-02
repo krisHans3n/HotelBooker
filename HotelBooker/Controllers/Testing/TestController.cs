@@ -1,31 +1,40 @@
 ﻿using HotelBooker.Data;
 using HotelBooker.Data.Entity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging;
 
-namespace HotelBooker.API.DataInitialiser
+namespace HotelBooker.API.Controllers.Testing
 {
-    public class HotelBookerDataInitialiser
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TestController : ControllerBase
     {
-        public readonly DataContext _context;
-        public HotelBookerDataInitialiser(DataContext context)
+        private readonly DataContext _context;
+        public TestController(DataContext context)
         {
             _context = context;
         }
 
-        public static void Initialise(IServiceProvider services)
+        [HttpGet("ResetData")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> ResetData()
         {
-            using var scope = services.CreateScope();
 
-            var _context = scope.ServiceProvider.GetRequiredService<DataContext>();
+            await _context.RoomTypes.ExecuteDeleteAsync();
+            await _context.Guests.ExecuteDeleteAsync();
+            await _context.Hotels.ExecuteDeleteAsync();
+            await _context.Rooms.ExecuteDeleteAsync();
+            await _context.Payments.ExecuteDeleteAsync();
+            await _context.Bookings.ExecuteDeleteAsync();
 
-            _context.RoomTypes.ExecuteDelete();
-            _context.Guests.ExecuteDelete();
-            _context.Hotels.ExecuteDelete();
-            _context.Rooms.ExecuteDelete();
-            _context.Payments.ExecuteDelete();
-            _context.Bookings.ExecuteDelete();
+            return Ok();
+        }
 
+        [HttpGet("SeedData")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> SeedData()
+        {
             _context.AddRange(
                 [
                 new RoomType() { Name = "Single"},
@@ -42,11 +51,14 @@ namespace HotelBooker.API.DataInitialiser
                 ]
                 );
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
-            var hilton = _context.Hotels.Where(x => x.Name == "Hilton").Include(x => x.Rooms).FirstOrDefault();
+            var hilton = await _context.Hotels
+                .Where(x => x.Name == "Hilton")
+                .Include(x => x.Rooms)
+                .FirstOrDefaultAsync();
 
-            hilton.Rooms.AddRange(
+            hilton?.Rooms.AddRange(
                 [
                 new Room() {RoomNumber = 1, Capacity = 1, RoomType = _context.RoomTypes.FirstOrDefault(x => x.Name == "Single"), PricePerNight = 30},
                 new Room() {RoomNumber = 2, Capacity = 1, RoomType = _context.RoomTypes.FirstOrDefault(x => x.Name == "Single"), PricePerNight = 30},
@@ -57,9 +69,12 @@ namespace HotelBooker.API.DataInitialiser
                 ]
                 );
 
-            var marriott = _context.Hotels.Where(x => x.Name == "Marriott").Include(x => x.Rooms).FirstOrDefault();
+            var marriott = await _context.Hotels
+                .Where(x => x.Name == "Marriott")
+                .Include(x => x.Rooms)
+                .FirstOrDefaultAsync();
 
-            marriott.Rooms.AddRange(
+            marriott?.Rooms.AddRange(
                 [
                 new Room() {RoomNumber = 1, Capacity = 1, RoomType = _context.RoomTypes.FirstOrDefault(x => x.Name == "Single"), PricePerNight = 30},
                 new Room() {RoomNumber = 2, Capacity = 2, RoomType = _context.RoomTypes.FirstOrDefault(x => x.Name == "Double"), PricePerNight = 45},
@@ -69,10 +84,13 @@ namespace HotelBooker.API.DataInitialiser
                 new Room() { RoomNumber = 6, Capacity = 5, RoomType = _context.RoomTypes.FirstOrDefault(x => x.Name == "Deluxe"), PricePerNight = 60}
                 ]
                 );
+            
+            var holidayInn = await _context.Hotels
+                .Where(x => x.Name == "Holiday Inn")
+                .Include(x => x.Rooms)
+                .FirstOrDefaultAsync();
 
-            var holidayInn = _context.Hotels.Where(x => x.Name == "Holiday Inn").Include(x => x.Rooms).FirstOrDefault();
-
-            holidayInn.Rooms.AddRange(
+            holidayInn?.Rooms.AddRange(
                 [
                 new Room() {RoomNumber = 1, Capacity = 1, RoomType = _context.RoomTypes.FirstOrDefault(x => x.Name == "Single"), PricePerNight = 30},
                 new Room() {RoomNumber = 2, Capacity = 2, RoomType = _context.RoomTypes.FirstOrDefault(x => x.Name == "Double"), PricePerNight = 50},
@@ -101,26 +119,23 @@ namespace HotelBooker.API.DataInitialiser
                 ]
                 );
 
-            _context.SaveChanges();
-
 
             foreach (var booking in _context.Bookings)
             {
-                _context.Payments.Add(
-                    new Payment() { 
-                        Amount = booking.TotalPrice, 
+                await _context.Payments.AddAsync(
+                    new Payment()
+                    {
+                        Amount = booking.TotalPrice,
                         PaymentDate = booking.CheckIn,
                         PaymentMethod = "Visa",
-                        Booking = booking}
+                        Booking = booking
+                    }
                     );
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
-
-        
-        
-        
-
     }
 }

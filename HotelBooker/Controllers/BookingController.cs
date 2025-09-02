@@ -8,19 +8,16 @@ namespace HotelBooker.API.Controllers
     [ApiController]
     public class BookingController : ControllerBase
     {
-        private readonly ILogger<BookingController> _logger;
         private readonly IBookingService _service;
-        public BookingController(ILogger<BookingController> logger, 
-            IBookingService service)
+        public BookingController(IBookingService service)
         {
-            _logger = logger;
             _service = service;
         }
 
         [HttpGet("{reference}")]
-        [ProducesResponseType(typeof(BookingModel), 200)]
+        [ProducesResponseType(typeof(BookingModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetBookingByReference(string reference)
+        public async Task<ActionResult> GetBookingByReference(string reference)
         {
             var bookingDetails = await _service.GetBookingByReference(reference);
 
@@ -33,9 +30,9 @@ namespace HotelBooker.API.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(BookingModel), 200)]
+        [ProducesResponseType(typeof(BookingModel), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create([FromBody] BookingSaveModel saveModel)
+        public async Task<ActionResult> Create([FromBody] BookingSaveModel saveModel)
         {
             var result = await _service.Create(saveModel);
 
@@ -44,7 +41,11 @@ namespace HotelBooker.API.Controllers
                 return BadRequest();
             }
 
-            return Ok(result);
+            return CreatedAtAction(
+                nameof(GetBookingByReference),
+                new { reference = result.BookingReference},
+                result
+                );
         }
 
     }

@@ -48,23 +48,27 @@ namespace HotelBooker.Services.Service
         public async Task<IEnumerable<RoomModel?>> GetAvailableRooms(DateOnly from, DateOnly to)
         {
             var rooms = await _context.Rooms
-                .Where(x => !x.Bookings.Any(y => from >= y.CheckIn && to <= y.CheckOut))
-                .Include(x => x.Hotel)
-                .Include(x => x.RoomType)
+                .Where(x => !x.Bookings.Any(y => y.CheckIn <= to && y.CheckOut >= from))
+                .Select(r => new RoomModel
+                {
+                    Id = r.ID,
+                    RoomNumber = r.RoomNumber,
+                    PricePerNight = r.PricePerNight,
+                    Capacity = r.Capacity,
+                    Hotel = new HotelModel
+                    {
+                        Name = r.Hotel.Name,
+                        CheckIn = r.Hotel.CheckIn,
+                        CheckOut = r.Hotel.CheckOut
+                    },
+                    RoomType = new RoomTypeModel
+                    {
+                        Name = r.RoomType.Name
+                    }
+                })
                 .ToListAsync();
 
-            var result = new List<RoomModel>();
-
-            foreach (var room in rooms)
-            {
-                result.Add(new RoomModel()
-                {
-                    RoomNumber = room.RoomNumber,
-                    PricePerNight = room.PricePerNight
-                });
-            }
-
-            return result;
+            return rooms;
         }
     }
 }

@@ -8,21 +8,18 @@ namespace HotelBooker.API.Controllers
     [ApiController]
     public class HotelController : ControllerBase
     {
-        private readonly ILogger<HotelController> _logger;
         private readonly IHotelService _service;
 
-        public HotelController(ILogger<HotelController> logger,
-            IHotelService service)
+        public HotelController(IHotelService service)
         {
-            _logger = logger;
             _service = service;
         }
 
 
         [HttpGet("{name}")]
-        [ProducesResponseType(typeof(HotelModel), 200)]
+        [ProducesResponseType(typeof(HotelModel), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetHotelByName(string name)
+        public async Task<ActionResult> GetHotelByName(string name)
         {
             var hotel = await _service.GetHotelByName(name);
 

@@ -1,8 +1,6 @@
-﻿using HotelBooker.Data;
-using HotelBooker.Data.Models;
+﻿using HotelBooker.Data.Models;
 using HotelBooker.Services.Interface;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace HotelBooker.API.Controllers
 {
@@ -10,19 +8,16 @@ namespace HotelBooker.API.Controllers
     [ApiController]
     public class RoomController : ControllerBase
     {
-        private readonly ILogger<RoomController> _logger;
 
         private readonly IRoomService _service;
-        public RoomController(ILogger<RoomController> logger, 
-            IRoomService service)
+        public RoomController(IRoomService service)
         {
-            _logger = logger;
             _service = service;
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<RoomModel>), 200)]
-        public async Task<IActionResult> GetAll()
+        [ProducesResponseType(typeof(IEnumerable<RoomModel>), StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetAll()
         {
             var rooms = await _service.GetAll();
 
@@ -34,19 +29,14 @@ namespace HotelBooker.API.Controllers
             return Ok(rooms);
         }
 
-        [HttpGet("{from}/{to}")]
-        [ProducesResponseType(typeof(IEnumerable<RoomModel>), 200)]
+        [HttpGet("available")]
+        [ProducesResponseType(typeof(IEnumerable<RoomModel>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetAvailableRooms(DateOnly from, DateOnly to)
+        public async Task<ActionResult> GetAvailableRooms([FromQuery] DateOnly from, [FromQuery] DateOnly to)
         {
             var rooms = await _service.GetAvailableRooms(from, to);
 
-            if (rooms == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(rooms);
+            return Ok(rooms ?? []);
         }
     }
 }

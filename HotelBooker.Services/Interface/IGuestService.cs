@@ -4,6 +4,6 @@ namespace HotelBooker.Services.Interface
 {
     public interface IGuestService
     {
-        Task<IEnumerable<GuestModel>> GetAll();
+        Task<List<GuestModel>> GetAll();
     }
 }

@@ -35,7 +35,7 @@ namespace HotelBooker.Services.Service
                 return null;
             }
 
-            if ((saveModel.CheckOut.DayNumber - saveModel.CheckIn.DayNumber) > 0)
+            if (saveModel.CheckOut.DayNumber <= saveModel.CheckIn.DayNumber)
             {
                 return null;
             }
@@ -47,11 +47,14 @@ namespace HotelBooker.Services.Service
                 NumberOfGuests = saveModel.NumberOfGuests,
                 RoomId = saveModel.RoomId,
                 GuestId = saveModel.GuestId,
-                BookingReference = $"HBN-{DateTime.Now.Year}-{BookingUtility.GenerateUniqueReference()}"
+                BookingReference = $"HBN-{DateTime.Now.Year}-{BookingUtility.GenerateUniqueReference()}",
+                Room = room
             };
 
             await _context.AddAsync(newBooking);
 
+            int retries = 0;
+            int maxRetries = 10;
             var saved = false;
 
             // Ensure no concurrency conflicts by using optimistic check on specified concurrency property
@@ -59,7 +62,11 @@ namespace HotelBooker.Services.Service
             {
                 try
                 {
-                    if (!room.Bookings.Any(y => y.CheckIn >= saveModel.CheckIn && y.CheckOut <= saveModel.CheckOut))
+                    retries++;
+
+                    if (!room.Bookings.Any(y =>
+                    y.CheckIn <= saveModel.CheckOut && 
+                    y.CheckOut >= saveModel.CheckIn))
                     {
                         await _context.SaveChangesAsync();
                         saved = true;
@@ -71,7 +78,16 @@ namespace HotelBooker.Services.Service
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
-                    ex.Entries.Single().Reload();
+                    retries++;
+
+                    if (retries > maxRetries)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        ex.Entries.Single().Reload();
+                    }
                 }
             }
 
@@ -95,7 +111,7 @@ namespace HotelBooker.Services.Service
         public async Task<BookingModel?> GetBookingByReference(string reference)
         {
             var booking = await _context.Bookings
-                .Where(x => EF.Functions.Like(x.BookingReference, reference))
+                .Where(x => x.BookingReference.ToLower() == reference.ToLower())
                 .Include(x => x.Room)
                 .FirstOrDefaultAsync();
 
