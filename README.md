@@ -12,7 +12,10 @@ Extras:
 - Allows an over view of guests (for building save model for booking)
 - Allows an over view of rooms (for building save model for booking)
 
-Swagger UI is enabled for local developent.
+Available to test with Swagger, here:
+```
+https://hotelbookerapi20250902094503-fnhsd7fjfueecnck.canadacentral-01.azurewebsites.net/swagger/index.html
+```
 
 ## End-Points Summary
 ### Booking Endpoints:
